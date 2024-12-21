@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace MiracleLandBE;
+namespace MiracleLandBE.Models
 
 public partial class TsmgbeContext : DbContext
 {
