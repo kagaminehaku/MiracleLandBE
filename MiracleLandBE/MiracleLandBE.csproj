@@ -21,7 +21,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.1.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="MinimalModels\" />
     <Folder Include="Models\" />
     <Folder Include="SharedControllers\" />
   </ItemGroup>

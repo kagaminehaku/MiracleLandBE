@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiracleLandBE.Models;
 using MiracleLandBE.LogicalServices;
+using Microsoft.AspNetCore.Authorization;
+using MiracleLandBE.MinimalModels;
 
 namespace MiracleLandBE.CsControllers
 {
@@ -15,18 +17,29 @@ namespace MiracleLandBE.CsControllers
     public class CsUserAccountsController : ControllerBase
     {
         private readonly TsmgbeContext _context;
+        private readonly LoginTokenGenerate _loginTokenGenerate;
 
-        public CsUserAccountsController(TsmgbeContext context)
+        public CsUserAccountsController(TsmgbeContext context,LoginTokenGenerate loginTokenGenerate)
         {
             _context = context;
+            _loginTokenGenerate = loginTokenGenerate;
         }
 
-        //// GET: api/CsUserAccounts
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<UserAccount>>> GetUserAccounts()
-        //{
-        //    return await _context.UserAccounts.ToListAsync();
-        //}
+        [AllowAnonymous]
+        [HttpPost("CsLogin")]
+        public async Task<IActionResult> Login(UserLoginRequest loginRequest)
+        {
+            var userAccount = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Username == loginRequest.Username);
+
+            if (userAccount == null || !PasswordProcess.VerifyPassword(loginRequest.Password, userAccount.Password))
+            {
+                return Unauthorized("Wrong username or password");
+            }
+
+            var token = _loginTokenGenerate.GenerateJwtToken(userAccount);
+
+            return Ok(new { Token = token });
+        }
 
         // GET: api/CsUserAccounts/5
         [HttpGet("{id}")]
@@ -96,22 +109,6 @@ namespace MiracleLandBE.CsControllers
             }
 
             return CreatedAtAction("GetUserAccount", new { id = userAccount.Uid }, userAccount);
-        }
-
-        // DELETE: api/CsUserAccounts/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUserAccount(Guid id)
-        {
-            var userAccount = await _context.UserAccounts.FindAsync(id);
-            if (userAccount == null)
-            {
-                return NotFound();
-            }
-
-            _context.UserAccounts.Remove(userAccount);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
 
         private bool UserAccountExists(Guid id)

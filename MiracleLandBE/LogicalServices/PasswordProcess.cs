@@ -3,8 +3,13 @@ using System.Text;
 
 namespace MiracleLandBE.LogicalServices
 {
-    internal class Hashing
+    internal class PasswordProcess
     {
+        public static bool VerifyPassword(string inputPassword, string storedPasswordHash)
+        {
+            string inputPasswordHash = EncryptData(inputPassword);
+            return inputPasswordHash == storedPasswordHash;
+        }
         public static string EncryptData(string input)
         {
             using (SHA512 sha512 = SHA512.Create())
