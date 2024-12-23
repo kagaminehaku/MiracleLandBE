@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MiracleLandBE.Models
+namespace MiracleLandBE.Models;
 
 public partial class CsOrder
 {

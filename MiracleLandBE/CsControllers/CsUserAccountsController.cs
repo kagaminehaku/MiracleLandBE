@@ -5,30 +5,30 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MiracleLandBE;
 using MiracleLandBE.Models;
+using MiracleLandBE.LogicalServices;
 
-namespace MiracleLandBE.SharedControllers
+namespace MiracleLandBE.CsControllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserAccountsController : ControllerBase
+    public class CsUserAccountsController : ControllerBase
     {
         private readonly TsmgbeContext _context;
 
-        public UserAccountsController(TsmgbeContext context)
+        public CsUserAccountsController(TsmgbeContext context)
         {
             _context = context;
         }
 
-        // GET: api/UserAccounts
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserAccount>>> GetUserAccounts()
-        {
-            return await _context.UserAccounts.ToListAsync();
-        }
+        //// GET: api/CsUserAccounts
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<UserAccount>>> GetUserAccounts()
+        //{
+        //    return await _context.UserAccounts.ToListAsync();
+        //}
 
-        // GET: api/UserAccounts/5
+        // GET: api/CsUserAccounts/5
         [HttpGet("{id}")]
         public async Task<ActionResult<UserAccount>> GetUserAccount(Guid id)
         {
@@ -42,7 +42,7 @@ namespace MiracleLandBE.SharedControllers
             return userAccount;
         }
 
-        // PUT: api/UserAccounts/5
+        // PUT: api/CsUserAccounts/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUserAccount(Guid id, UserAccount userAccount)
@@ -73,7 +73,7 @@ namespace MiracleLandBE.SharedControllers
             return NoContent();
         }
 
-        // POST: api/UserAccounts
+        // POST: api/CsUserAccounts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<UserAccount>> PostUserAccount(UserAccount userAccount)
@@ -98,7 +98,7 @@ namespace MiracleLandBE.SharedControllers
             return CreatedAtAction("GetUserAccount", new { id = userAccount.Uid }, userAccount);
         }
 
-        // DELETE: api/UserAccounts/5
+        // DELETE: api/CsUserAccounts/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUserAccount(Guid id)
         {
