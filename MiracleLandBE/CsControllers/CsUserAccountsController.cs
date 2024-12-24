@@ -9,6 +9,9 @@ using MiracleLandBE.Models;
 using MiracleLandBE.LogicalServices;
 using Microsoft.AspNetCore.Authorization;
 using MiracleLandBE.MinimalModels;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace MiracleLandBE.CsControllers
 {
@@ -40,6 +43,43 @@ namespace MiracleLandBE.CsControllers
 
             return Ok(new { Token = token });
         }
+
+        [AllowAnonymous]
+        [HttpGet("ValidateToken")]
+        public IActionResult ValidateToken(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest("Token is required.");
+            }
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes("AkG1IewQkZIfl00CyPdznokA6t9TEkCJ ");
+
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false, // Set to true if you want to validate issuer
+                    ValidateAudience = false, // Set to true if you want to validate audience
+                    ValidateLifetime = true, // Ensures the token hasn't expired
+                    ClockSkew = TimeSpan.Zero // Adjust for server clock drift if needed
+                }, out SecurityToken validatedToken);
+
+                return Ok("Token is valid.");
+            }
+            catch (SecurityTokenExpiredException)
+            {
+                return Unauthorized("Token has expired.");
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized($"Token validation failed: {ex.Message}");
+            }
+        }
+
 
         // GET: api/CsUserAccounts/5
         [HttpGet("{id}")]
