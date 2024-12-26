@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiracleLandBE.Models;
+using MiracleLandBE.MinimalModels;
 
 namespace MiracleLandBE.CsControllers
 {
@@ -75,8 +76,13 @@ namespace MiracleLandBE.CsControllers
         // POST: api/CsShoppingCarts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<ShoppingCart>> PostShoppingCart(ShoppingCart shoppingCart)
+        public async Task<ActionResult<ShoppingCart>> PostShoppingCart(ShoppingCartsRequest shoppingCartreq)
         {
+            var shoppingCart = new ShoppingCart();
+            shoppingCart.Cartitemid = Guid.NewGuid();
+            shoppingCart.Uid = shoppingCartreq.Uid;
+            shoppingCart.Pid = shoppingCartreq.Pid;
+            shoppingCart.Pquantity = shoppingCartreq.Pquantity;
             _context.ShoppingCarts.Add(shoppingCart);
             try
             {

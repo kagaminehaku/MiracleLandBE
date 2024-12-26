@@ -21,7 +21,7 @@ public partial class UserAccount
 
     public bool IsActive { get; set; }
 
-    public string? Avt { get; set; }
+    public string? Avt { get; set; }    
 
     public virtual ICollection<ShoppingCart> ShoppingCarts { get; set; } = new List<ShoppingCart>();
 }

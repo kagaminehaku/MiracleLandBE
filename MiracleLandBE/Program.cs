@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MiracleLandBE.LogicalServices;
 using MiracleLandBE.Models;
 using System.Text;
 
@@ -14,7 +15,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<TsmgbeContext>();
 builder.Services.AddScoped<LoginTokenGenerate>();
-
+builder.Services.Configure<ImgSettings>(builder.Configuration.GetSection("ImgSettings"));
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+builder.Services.AddSingleton<ImageUploader.ImgUploader>();
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 builder.Services.AddAuthentication(options =>
 {

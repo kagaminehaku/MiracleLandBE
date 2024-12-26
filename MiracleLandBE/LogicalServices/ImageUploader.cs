@@ -2,20 +2,20 @@
 
 namespace MiracleLandBE.LogicalServices
 {
-    public class ImgbbSettings
+    public class ImgSettings
     {
         public string ApiKey { get; set; }
     }
 
     public class ImageUploader
     {
-        public class ImgbbUploader
+        public class ImgUploader
         {
             private readonly string apiKey;
 
-            public ImgbbUploader(IOptions<ImgbbSettings> imgbbSettings)
+            public ImgUploader(IOptions<ImgSettings> imgSettings)
             {
-                this.apiKey = imgbbSettings.Value.ApiKey;
+                this.apiKey = imgSettings.Value.ApiKey;
             }
 
             public async Task<string> UploadImageAsync(string imagePath)
