@@ -9,7 +9,7 @@ public partial class CsOrderDetail
 
     public Guid Orderid { get; set; }
 
-    public int Pid { get; set; }
+    public Guid Pid { get; set; }
 
     public int Quantity { get; set; }
 

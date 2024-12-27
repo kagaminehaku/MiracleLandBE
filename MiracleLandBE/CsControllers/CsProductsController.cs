@@ -183,7 +183,6 @@ namespace MiracleLandBE.Controllers
 
             try
             {
-                // Validate token and extract UID
                 var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -194,13 +193,13 @@ namespace MiracleLandBE.Controllers
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 
-                var uidClaim = principal.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-                if (string.IsNullOrEmpty(uidClaim) || !Guid.TryParse(uidClaim, out var uid))
+                var uidString = principal.Identity?.Name;
+
+                if (!Guid.TryParse(uidString, out var uid))
                 {
                     return Unauthorized("Invalid token.");
                 }
 
-                // Get all items in the user's shopping cart
                 var cartItems = await _context.ShoppingCarts
                     .Where(cart => cart.Uid == uid)
                     .Join(_context.Products,
@@ -227,67 +226,6 @@ namespace MiracleLandBE.Controllers
             {
                 return Unauthorized($"Token validation failed: {ex.Message}");
             }
-        }
-
-        [HttpGet("shoppingcart")]
-        public async Task<ActionResult<IEnumerable<ShoppingCartsGet>>> GetUserShoppingCart([FromHeader] string token)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_jwtKey);
-            // Decode the token to get the user's ID
-            var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
-            }, out SecurityToken validatedToken);
-
-            var uidClaim = principal.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-
-            if (string.IsNullOrEmpty(uidClaim) || !Guid.TryParse(uidClaim, out var uid))
-            {
-                return Unauthorized("Invalid token.");
-            }
-
-            // Retrieve shopping cart items for the user
-            var shoppingCartItems = await _context.ShoppingCarts
-                .Where(cart => cart.Uid == uid)
-                .Select(cart => new
-                {
-                    cart.Cartitemid,
-                    cart.Pid,
-                    cart.Pquantity
-                })
-                .ToListAsync();
-
-            if (!shoppingCartItems.Any())
-            {
-                return Ok("Shopping cart is empty.");
-            }
-
-            // Build the result with product price lookup
-            var cartWithPrices = new List<ShoppingCartsGet>();
-            foreach (var item in shoppingCartItems)
-            {
-                var product = await _context.Products.FindAsync(item.Pid);
-                if (product == null)
-                {
-                    return NotFound($"Product with ID {item.Pid} not found.");
-                }
-
-                cartWithPrices.Add(new ShoppingCartsGet
-                {
-                    Cartitemid = item.Cartitemid,
-                    Pid = item.Pid,
-                    Pquantity = item.Pquantity,
-                    Pprice = product.Pprice
-                });
-            }
-
-            return Ok(cartWithPrices);
         }
 
     }
