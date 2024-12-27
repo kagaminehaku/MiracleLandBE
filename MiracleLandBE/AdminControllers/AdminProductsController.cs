@@ -19,9 +19,9 @@ namespace MiracleLandBE.AdminControllers
     {
         private readonly TsmgbeContext _context;
         private readonly string _jwtKey;
-        private readonly ImageUploader.ImgUploader _imgUploader;
+        private readonly ImgUploader _imgUploader;
 
-        public AdminProductsController(TsmgbeContext context,IConfiguration configuration, ImageUploader.ImgUploader imgUploader)
+        public AdminProductsController(TsmgbeContext context,IConfiguration configuration, ImgUploader imgUploader)
         {
             _context = context;
             _jwtKey = configuration["Jwt:Key"];
@@ -101,26 +101,29 @@ namespace MiracleLandBE.AdminControllers
             return CreatedAtAction("GetProduct", new { id = newProduct.Pid }, newProduct);
         }
 
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(Guid id, PostPutProduct productUpdate)
+        [HttpPost("PP")]
+        public async Task<ActionResult> PutProduct(PostPutProduct productUpdate)
         {
-            if (id != productUpdate.Pid)
-            {
-                return BadRequest();
-            }
+            Console.WriteLine(productUpdate.Pid);
+            Console.WriteLine(productUpdate.Pname);
+            Console.WriteLine(productUpdate.Pprice);
+            Console.WriteLine(productUpdate.Pquantity);
+            Console.WriteLine(productUpdate.Pinfo);
+            Console.WriteLine(productUpdate.PimgContent);
+            Console.WriteLine("Fine");
+            var existingProduct = await _context.Products.FindAsync(productUpdate.Pid);
 
-            var existingProduct = await _context.Products.FindAsync(id);
             if (existingProduct == null)
             {
-                return NotFound();
+                return NotFound("Product not found.");
             }
+
 
             existingProduct.Pname = productUpdate.Pname;
             existingProduct.Pprice = productUpdate.Pprice;
             existingProduct.Pquantity = productUpdate.Pquantity;
             existingProduct.Pinfo = productUpdate.Pinfo;
-            existingProduct.Pimg = existingProduct.Pimg;
+            existingProduct.Pimg = string.Empty;
 
             if (!string.IsNullOrEmpty(productUpdate.PimgContent))
             {
@@ -141,7 +144,7 @@ namespace MiracleLandBE.AdminControllers
                 }
             }
 
-            _context.Entry(existingProduct).State = EntityState.Modified;
+            //_context.Entry(existingProduct).State = EntityState.Modified;
 
             try
             {
@@ -149,7 +152,7 @@ namespace MiracleLandBE.AdminControllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProductExists(id))
+                if (!ProductExists(productUpdate.Pid))
                 {
                     return NotFound();
                 }
@@ -159,7 +162,7 @@ namespace MiracleLandBE.AdminControllers
                 }
             }
 
-            return NoContent();
+            return Ok();
         }
 
 

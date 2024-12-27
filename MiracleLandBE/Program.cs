@@ -36,6 +36,7 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = false
     };
 });
+
 //Force authorize
 // Add authorization policy
 //builder.Services.AddAuthorization(options =>
@@ -54,7 +55,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
