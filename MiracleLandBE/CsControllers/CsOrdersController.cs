@@ -132,18 +132,24 @@ namespace MiracleLandBE.CsControllers
 
 
         // GET: api/Orders/details/{orderId}
-        [HttpGet("details/{orderId}")]
+        [HttpGet("order-details/{orderId}")]
         public async Task<IActionResult> GetOrderDetails(Guid orderId)
         {
             var orderDetails = await _context.CsOrderDetails
                 .Where(od => od.Orderid == orderId)
-                .Select(od => new CsOrderDetailRequest
-                {
-                    Odid = od.Odid,
-                    Orderid = od.Orderid,
-                    Pid = od.Pid,
-                    Quantity = od.Quantity
-                })
+                .Join(
+                    _context.Products, // Join with the Product table
+                    od => od.Pid,     // Foreign Key in OrderDetail
+                    p => p.Pid,       // Primary Key in Product
+                    (od, p) => new CsOrderDetailRequest
+                    {
+                        Odid = od.Odid,
+                        Orderid = od.Orderid,
+                        Pid = od.Pid,
+                        Pname = p.Pname,  // Fetch product name
+                        Pimg = p.Pimg,    // Fetch product image
+                        Quantity = od.Quantity
+                    })
                 .ToListAsync();
 
             return Ok(orderDetails);

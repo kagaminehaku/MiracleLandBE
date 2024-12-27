@@ -23,6 +23,9 @@
         public Guid Orderid { get; set; }
 
         public Guid Pid { get; set; }
+        
+        public string Pname { get; set; } 
+        public string Pimg { get; set; } 
 
         public int Quantity { get; set; }
     }
