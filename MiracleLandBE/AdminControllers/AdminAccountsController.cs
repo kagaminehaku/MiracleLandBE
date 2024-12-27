@@ -20,98 +20,39 @@ namespace MiracleLandBE.AdminControllers
             _context = context;
         }
 
-        // GET: api/AdminAccounts
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserAccount>>> GetUserAccounts()
+        [HttpGet("GetCustomers")]
+        public async Task<IActionResult> GetCustomers()
         {
-            return await _context.UserAccounts.ToListAsync();
+            var customers = await _context.UserAccounts
+                                           .Where(u => u.Type == "Customer")
+                                           .ToListAsync();
+
+            if (!customers.Any())
+            {
+                return NotFound("No customers found.");
+            }
+
+            return Ok(customers);
         }
 
-        // GET: api/AdminAccounts/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<UserAccount>> GetUserAccount(Guid id)
+        [HttpPost("BanUser")]
+        public async Task<IActionResult> BanUser([FromBody] Guid userId)
         {
-            var userAccount = await _context.UserAccounts.FindAsync(id);
+            var user = await _context.UserAccounts.FindAsync(userId);
 
-            if (userAccount == null)
+            if (user == null)
             {
-                return NotFound();
+                return NotFound("User not found.");
             }
 
-            return userAccount;
-        }
+            user.IsActive = false;
 
-        // PUT: api/AdminAccounts/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUserAccount(Guid id, UserAccount userAccount)
-        {
-            if (id != userAccount.Uid)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(userAccount).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserAccountExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/AdminAccounts
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<UserAccount>> PostUserAccount(UserAccount userAccount)
-        {
-            _context.UserAccounts.Add(userAccount);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (UserAccountExists(userAccount.Uid))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return CreatedAtAction("GetUserAccount", new { id = userAccount.Uid }, userAccount);
-        }
-
-        // DELETE: api/AdminAccounts/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUserAccount(Guid id)
-        {
-            var userAccount = await _context.UserAccounts.FindAsync(id);
-            if (userAccount == null)
-            {
-                return NotFound();
-            }
-
-            _context.UserAccounts.Remove(userAccount);
+            _context.UserAccounts.Update(user);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok("User has been banned successfully.");
         }
+
 
         private bool UserAccountExists(Guid id)
         {

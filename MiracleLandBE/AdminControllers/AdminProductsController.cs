@@ -6,7 +6,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiracleLandBE;
+using MiracleLandBE.LogicalServices;
+using MiracleLandBE.MinimalModels;
 using MiracleLandBE.Models;
+using static MiracleLandBE.LogicalServices.ImageUploader;
 
 namespace MiracleLandBE.AdminControllers
 {
@@ -15,10 +18,14 @@ namespace MiracleLandBE.AdminControllers
     public class AdminProductsController : ControllerBase
     {
         private readonly TsmgbeContext _context;
+        private readonly string _jwtKey;
+        private readonly ImageUploader.ImgUploader _imgUploader;
 
-        public AdminProductsController(TsmgbeContext context)
+        public AdminProductsController(TsmgbeContext context,IConfiguration configuration, ImageUploader.ImgUploader imgUploader)
         {
             _context = context;
+            _jwtKey = configuration["Jwt:Key"];
+            _imgUploader = imgUploader;
         }
 
         // GET: api/AdminProducts
@@ -42,17 +49,99 @@ namespace MiracleLandBE.AdminControllers
             return product;
         }
 
-        // PUT: api/AdminProducts/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(Guid id, Product product)
+        [HttpPost]
+        public async Task<ActionResult<Product>> PostProduct(PostPutProduct productInput)
         {
-            if (id != product.Pid)
+            var newProduct = new Product
+            {
+                Pid = productInput.Pid,
+                Pname = productInput.Pname,
+                Pprice = productInput.Pprice,
+                Pquantity = productInput.Pquantity,
+                Pinfo = productInput.Pinfo,
+                Pimg = string.Empty // Placeholder, updated if PimgContent is provided
+            };
+
+            if (!string.IsNullOrEmpty(productInput.PimgContent))
+            {
+                try
+                {
+                    byte[] imageBytes = Convert.FromBase64String(productInput.PimgContent);
+                    string imagePath = Path.GetTempFileName();
+                    await System.IO.File.WriteAllBytesAsync(imagePath, imageBytes);
+
+                    string imageUrl = await _imgUploader.UploadImageAsync(imagePath);
+                    newProduct.Pimg = imageUrl;
+
+                    System.IO.File.Delete(imagePath);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest($"Image upload failed: {ex.Message}");
+                }
+            }
+
+            _context.Products.Add(newProduct);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                if (ProductExists(newProduct.Pid))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return CreatedAtAction("GetProduct", new { id = newProduct.Pid }, newProduct);
+        }
+
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutProduct(Guid id, PostPutProduct productUpdate)
+        {
+            if (id != productUpdate.Pid)
             {
                 return BadRequest();
             }
 
-            _context.Entry(product).State = EntityState.Modified;
+            var existingProduct = await _context.Products.FindAsync(id);
+            if (existingProduct == null)
+            {
+                return NotFound();
+            }
+
+            existingProduct.Pname = productUpdate.Pname;
+            existingProduct.Pprice = productUpdate.Pprice;
+            existingProduct.Pquantity = productUpdate.Pquantity;
+            existingProduct.Pinfo = productUpdate.Pinfo;
+            existingProduct.Pimg = existingProduct.Pimg;
+
+            if (!string.IsNullOrEmpty(productUpdate.PimgContent))
+            {
+                try
+                {
+                    byte[] imageBytes = Convert.FromBase64String(productUpdate.PimgContent);
+                    string imagePath = Path.GetTempFileName();
+                    await System.IO.File.WriteAllBytesAsync(imagePath, imageBytes);
+
+                    string imageUrl = await _imgUploader.UploadImageAsync(imagePath);
+                    existingProduct.Pimg = imageUrl;
+
+                    System.IO.File.Delete(imagePath);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest($"Image upload failed: {ex.Message}");
+                }
+            }
+
+            _context.Entry(existingProduct).State = EntityState.Modified;
 
             try
             {
@@ -73,30 +162,6 @@ namespace MiracleLandBE.AdminControllers
             return NoContent();
         }
 
-        // POST: api/AdminProducts
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
-        {
-            _context.Products.Add(product);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (ProductExists(product.Pid))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return CreatedAtAction("GetProduct", new { id = product.Pid }, product);
-        }
 
         // DELETE: api/AdminProducts/5
         [HttpDelete("{id}")]
