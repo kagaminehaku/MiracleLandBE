@@ -49,6 +49,54 @@ namespace MiracleLandBE.AdminControllers
             return product;
         }
 
+        [HttpPatch("UpdateProductImage")]
+        public async Task<IActionResult> UpdateProductImage([FromBody] EditProductImage model)
+        {
+            if (model == null || model.Pid == Guid.Empty || string.IsNullOrWhiteSpace(model.ProductImgContent))
+            {
+                return BadRequest("Invalid input.");
+            }
+
+            try
+            {
+                var product = await _context.Products.FindAsync(model.Pid);
+
+                if (product == null)
+                {
+                    return NotFound("Product not found.");
+                }
+
+                if (!string.IsNullOrEmpty(model.ProductImgContent))
+                {
+                    try
+                    {
+                        byte[] imageBytes = Convert.FromBase64String(model.ProductImgContent);
+                        string imagePath = Path.GetTempFileName();
+                        await System.IO.File.WriteAllBytesAsync(imagePath, imageBytes);
+
+                        string avatarUrl = await _imgUploader.UploadImageAsync(imagePath);
+                        product.Pimg = avatarUrl;
+
+                        System.IO.File.Delete(imagePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        return BadRequest($"Image upload failed: {ex.Message}");
+                    }
+                }
+
+                // Save changes to the database
+                _context.Products.Update(product);
+                await _context.SaveChangesAsync();
+
+                return Ok("Product image updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while updating the product image.");
+            }
+        }
+
         [HttpPost]
         public async Task<ActionResult<Product>> PostProduct(PostPutProduct productInput)
         {
