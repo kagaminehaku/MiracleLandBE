@@ -29,7 +29,6 @@ namespace MiracleLandBE.CsControllers
         [HttpPost]
         public async Task<IActionResult> PostOrder([FromBody] CsOrdersRequest orderRequest)
         {
-            // Validate the token
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtKey);
             var principal = tokenHandler.ValidateToken(orderRequest.token, new TokenValidationParameters
@@ -49,7 +48,6 @@ namespace MiracleLandBE.CsControllers
                 return Unauthorized("Invalid token.");
             }
 
-            // Map minimal model to original model
             var order = new CsOrder
             {
                 Uid = uid,
@@ -77,11 +75,9 @@ namespace MiracleLandBE.CsControllers
                 order.CsOrderDetails.Add(detail);
             }
 
-            // Save the order to the database
             _context.CsOrders.Add(order);
             await _context.SaveChangesAsync();
 
-            // Clear the user's shopping cart
             var userCartItems = _context.ShoppingCarts.Where(cart => cart.Uid == uid);
             _context.ShoppingCarts.RemoveRange(userCartItems);
             await _context.SaveChangesAsync();
@@ -114,7 +110,6 @@ namespace MiracleLandBE.CsControllers
                 return Unauthorized("Invalid token.");
             }
 
-            // Fetch and map orders
             var orders = await _context.CsOrders
                 .Where(o => o.Uid == uid)
                 .Select(o => new CsOrdersRequest
@@ -138,16 +133,16 @@ namespace MiracleLandBE.CsControllers
             var orderDetails = await _context.CsOrderDetails
                 .Where(od => od.Orderid == orderId)
                 .Join(
-                    _context.Products, // Join with the Product table
-                    od => od.Pid,     // Foreign Key in OrderDetail
-                    p => p.Pid,       // Primary Key in Product
+                    _context.Products, 
+                    od => od.Pid,     
+                    p => p.Pid,      
                     (od, p) => new CsOrderDetailRequest
                     {
                         Odid = od.Odid,
                         Orderid = od.Orderid,
                         Pid = od.Pid,
-                        Pname = p.Pname,  // Fetch product name
-                        Pimg = p.Pimg,    // Fetch product image
+                        Pname = p.Pname,  
+                        Pimg = p.Pimg,    
                         Quantity = od.Quantity
                     })
                 .ToListAsync();

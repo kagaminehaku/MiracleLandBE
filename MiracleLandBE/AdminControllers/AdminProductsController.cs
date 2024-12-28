@@ -85,7 +85,6 @@ namespace MiracleLandBE.AdminControllers
                     }
                 }
 
-                // Save changes to the database
                 _context.Products.Update(product);
                 await _context.SaveChangesAsync();
 
@@ -107,7 +106,7 @@ namespace MiracleLandBE.AdminControllers
                 Pprice = productInput.Pprice,
                 Pquantity = productInput.Pquantity,
                 Pinfo = productInput.Pinfo,
-                Pimg = string.Empty // Placeholder, updated if PimgContent is provided
+                Pimg = string.Empty 
             };
 
             if (!string.IsNullOrEmpty(productInput.PimgContent))

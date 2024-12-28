@@ -71,7 +71,7 @@ namespace MiracleLandBE.CsControllers
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero // Adjust for server clock drift if needed
+                    ClockSkew = TimeSpan.Zero 
                 }, out SecurityToken validatedToken);
 
                 return Ok("Token is valid.");
@@ -111,27 +111,23 @@ namespace MiracleLandBE.CsControllers
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 
-                // Extract username from the token claims
                 var uidString = principal.Identity?.Name;
                 if (string.IsNullOrEmpty(uidString))
                 {
                     return Unauthorized("Invalid token.");
                 }
 
-                // Parse the string UID to a Guid
                 if (!Guid.TryParse(uidString, out var uid))
                 {
                     return Unauthorized("Invalid token.");
                 }
 
-                // Retrieve the user account
                 var userAccount = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Uid == uid);
                 if (userAccount == null)
                 {
                     return NotFound("User not found.");
                 }
 
-                // Map userAccount to GetAccountInfo
                 var accountInfo = new GetAccountInfo
                 {
                     token = token,
@@ -294,7 +290,6 @@ namespace MiracleLandBE.CsControllers
 
             try
             {
-                // Validate the token
                 var principal = tokenHandler.ValidateToken(request.token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -305,33 +300,27 @@ namespace MiracleLandBE.CsControllers
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 
-                // Extract username from the token claims
                 var uidString = principal.Identity?.Name;
                 if (string.IsNullOrEmpty(uidString))
                 {
                     return Unauthorized("Invalid token.");
                 }
 
-                // Parse the string UID to a Guid
                 if (!Guid.TryParse(uidString, out var uid))
                 {
                     return Unauthorized("Invalid token.");
                 }
 
-                // Retrieve the user account
                 var userAccount = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Uid == uid);
                 if (userAccount == null)
                 {
                     return NotFound("User not found.");
                 }
 
-                // Check the current password
                 if (!PasswordProcess.VerifyPassword(request.CurrentPassword, userAccount.Password))
                 {
                     return BadRequest("Current password is incorrect.");
                 }
-
-                // Update the password
                 userAccount.Password = PasswordProcess.EncryptData(request.NewPassword);
                 _context.Entry(userAccount).State = EntityState.Modified;
 
