@@ -57,4 +57,10 @@
         public string? ProductImgContent { get; set; }
     }
 
+    public class PaymentUpdate
+    {
+        public Guid OrderNeedPay { get; set; }
+        public bool IsPayment { get; set; }
+    }
+
 }
