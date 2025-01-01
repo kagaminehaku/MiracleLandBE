@@ -44,7 +44,13 @@ namespace MiracleLandBE.CsControllers
             {
                 return Unauthorized("Wrong username or password");
             }
-
+            if (userAccount.IsActive==false) {
+                return Unauthorized("You has been banned");
+            }
+            //if (userAccount.Type == "Admin")
+            //{
+            //    return Unauthorized("Please use customer account");
+            //}
             var token = _loginTokenGenerate.GenerateJwtToken(userAccount);
 
             return Ok(new { Token = token });
