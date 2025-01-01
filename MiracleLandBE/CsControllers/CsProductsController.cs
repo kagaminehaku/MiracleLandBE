@@ -289,7 +289,7 @@ namespace MiracleLandBE.Controllers
             {
                 VnPayLibrary vnpay = new VnPayLibrary();
 
-                string vnp_Returnurl = "http://localhost:5000/vnpay_return"; //URL nhan ket qua tra ve 
+                string vnp_Returnurl = "http://miracleland.ddns.net:25565/vnpay_return"; //URL nhan ket qua tra ve 
                 string vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"; //URL thanh toan cua VNPAY 
                 string vnp_TmnCode = "JSZ9K8HP"; //Ma định danh merchant kết nối (Terminal Id)
                 string vnp_HashSecret = "F1XOCUGAV9K9GH7YLNULHG5XOAIJZNZX"; //Secret Key
