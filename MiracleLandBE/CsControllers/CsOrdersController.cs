@@ -29,6 +29,11 @@ namespace MiracleLandBE.CsControllers
         [HttpPost]
         public async Task<IActionResult> PostOrder([FromBody] CsOrdersRequest orderRequest)
         {
+            if (orderRequest.token==null)
+            {
+                return Unauthorized("Invalid token.");
+            }
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtKey);
             var principal = tokenHandler.ValidateToken(orderRequest.token, new TokenValidationParameters

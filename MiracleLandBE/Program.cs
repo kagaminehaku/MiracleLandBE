@@ -13,6 +13,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<TsmgbeContext>();
 builder.Services.AddScoped<LoginTokenGenerate>();
 builder.Services.Configure<ImgSettings>(builder.Configuration.GetSection("ImgSettings"));
@@ -46,7 +47,11 @@ builder.Services.AddAuthentication(options =>
 //        .Build();
 //});
 
+
 var app = builder.Build();
+
+app.UseRouting();
+app.UseStaticFiles();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -55,6 +60,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 //app.UseHttpsRedirection();
 
 app.UseAuthorization();

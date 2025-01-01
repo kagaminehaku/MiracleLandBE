@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "Kết quả giao dịch VNPAY";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if ((bool)ViewData["IsValidSignature"])
+{
+        <p>Giao dịch: 
+        @if (ViewData["TransactionStatus"].ToString() == "00")
+        {
+                    <b style="color: green;">Thành công</b>
+        }
+        else
+        {
+                    <b style="color: red;">Không thành công</b>
+        }
+        </p>
+
+        <ul>
+            <li><b>Mã đơn hàng:</b> @ViewData["OrderId"]</li>
+            <li><b>Mã giao dịch tại VNPAY:</b> @ViewData["TransactionNo"]</li>
+            <li><b>Ngân hàng thanh toán:</b> @ViewData["BankCode"]</li>
+            <li><b>Số tiền:</b> @ViewData["Amount"] VNĐ</li>
+            <li><b>Mã website:</b> @ViewData["TerminalID"]</li>
+        </ul>
+}
+else
+{
+        <p style="color: red;">Chữ ký không hợp lệ. Giao dịch bị từ chối.</p>
+}
