@@ -11,10 +11,11 @@ using MiracleLandBE.MinimalModels;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using VNPAY_CS_ASPX;
+using MiracleLandBE.LogicalServices;
 using Azure;
 using System.Text.Json;
 using Newtonsoft.Json.Linq;
+using System.Web;
 
 namespace MiracleLandBE.Controllers
 {
@@ -273,6 +274,40 @@ namespace MiracleLandBE.Controllers
             }
         }
 
+        [HttpGet("return")]
+        public IActionResult VnPayReturn()
+        {
+            VnPayLibrary vnpay = new VnPayLibrary();
+            // Lấy chuỗi bí mật từ cấu hình
+            string vnp_HashSecret = "F1XOCUGAV9K9GH7YLNULHG5XOAIJZNZX"; //Secret Key
+            var queryString = HttpUtility.ParseQueryString(Request.QueryString.Value);
+
+            // Lấy dữ liệu từ QueryString
+            string vnp_SecureHash = queryString["vnp_SecureHash"];
+            string vnp_ResponseCode = queryString["vnp_ResponseCode"];
+            string vnp_TransactionStatus = queryString["vnp_TransactionStatus"];
+            string vnp_TxnRef = queryString["vnp_TxnRef"];
+            string vnp_TransactionNo = queryString["vnp_TransactionNo"];
+            string vnp_BankCode = queryString["vnp_BankCode"];
+            string vnp_Amount = queryString["vnp_Amount"];
+            string vnp_TmnCode = queryString["vnp_TmnCode"];
+
+            // Kiểm tra chữ ký hợp lệ (tạo hàm ValidateSignature)
+            bool isValidSignature = Utils.ValidateSignature(queryString, vnp_SecureHash, vnp_HashSecret);
+
+            // Chuẩn bị dữ liệu cho giao diện
+            ViewData["IsValidSignature"] = isValidSignature;
+            ViewData["ResponseCode"] = vnp_ResponseCode;
+            ViewData["TransactionStatus"] = vnp_TransactionStatus;
+            ViewData["OrderId"] = vnp_TxnRef;
+            ViewData["TransactionNo"] = vnp_TransactionNo;
+            ViewData["BankCode"] = vnp_BankCode;
+            ViewData["Amount"] = long.Parse(vnp_Amount) / 100;
+            ViewData["TerminalID"] = vnp_TmnCode;
+
+            // Hiển thị kết quả ra giao diện Razor View
+            return View("VnPayResult");
+        }
 
         public static async Task<string> GetPublicIpAsync()
         {
@@ -295,6 +330,7 @@ namespace MiracleLandBE.Controllers
                 return "";
             }
         }
+
 
 
         [HttpPost("GetPaymentURL")]
